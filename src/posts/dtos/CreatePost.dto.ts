@@ -15,3 +15,13 @@ export class CreatePostDto {
   @IsNotEmpty()
   userId: string;
 }
+
+
+// მაგალთი  პოსტით
+
+// {
+//     "title": "My First Post",
+//     "contents": "This is a post created with NestJS.",
+//     "userId": "6650b5a87b6a8a1234567890"
+//   }
+  
