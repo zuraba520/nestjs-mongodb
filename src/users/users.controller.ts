@@ -25,19 +25,19 @@ function validateObjectId(id: string, name: string = 'ID') {
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  // 🔹 იუზერის შექმნა
+  //  იუზერის შექმნა
   @Post()
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
 
-  // 🔹 ყველა იუზერის წამოღება
+  // ყველა იუზერის წამოღება
   @Get()
   getUsers() {
     return this.usersService.getsUsers();
   }
 
-  // 🔹 კონკრეტული იუზერის წამოღება
+  //  კონკრეტული იუზერის წამოღება
   @Get(':id')
   async getUserById(@Param('id') id: string) {
     validateObjectId(id, 'User ID');
@@ -48,7 +48,7 @@ export class UsersController {
     return user;
   }
 
-  // 🔹 იუზერის განახლება
+  //  იუზერის განახლება
   @Patch(':id')
   async updateUser(
     @Param('id') id: string,
@@ -62,7 +62,7 @@ export class UsersController {
     return updatedUser;
   }
 
-  // 🔹 იუზერის წაშლა
+  //  იუზერის წაშლა
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
     validateObjectId(id, 'User ID');
@@ -73,7 +73,7 @@ export class UsersController {
     return { message: 'User deleted successfully' };
   }
 
-  // 🔹 იუზერის enrollment კურსზე
+  //  იუზერის enrollment კურსზე
   @Patch(':userId/enroll/:courseId')
   async enrollCourse(
     @Param('userId') userId: string,
@@ -85,7 +85,7 @@ export class UsersController {
     return this.usersService.enrollCourse(userId, courseId);
   }
 
-  // 🔹 იუზერის unenrollment კურსიდან
+  //  იუზერის unenrollment კურსიდან
   @Patch(':userId/unenroll/:courseId')
   async unenrollCourse(
     @Param('userId') userId: string,
@@ -97,3 +97,4 @@ export class UsersController {
     return this.usersService.unenrollCourse(userId, courseId);
   }
 }
+

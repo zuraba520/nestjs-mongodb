@@ -28,8 +28,16 @@ export class CoursesController {
 
   //  ყველა კურსის წამოღება სტატუსით active/deleted
   @Get()
-  getAllCourses(@Query('status') status: 'active' | 'deleted' = 'active') {
-    return this.coursesService.getAllCourses(status);
+  getAllCourses(
+    @Query('status') status: 'active' | 'deleted' = 'active',
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    return this.coursesService.getAllCourses(
+      status,
+      parseInt(page),
+      parseInt(limit),
+    );
   }
 
   //  კონკრეტული კურსის წამოღება ID_ით
@@ -63,5 +71,11 @@ export class CoursesController {
     @Query('status') status: 'active' | 'deleted' = 'active',
   ) {
     return this.coursesService.searchCourses(query, status);
+  }
+
+  //  ახალი როუტი წაშლილი კურსის აღდგენა (სტატუსის დაბრუნება active-ზე)
+  @Patch(':id/restore')
+  restoreCourse(@Param('id') id: string) {
+    return this.coursesService.restoreCourse(id);
   }
 }

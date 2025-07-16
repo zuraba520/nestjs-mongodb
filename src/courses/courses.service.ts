@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -19,19 +18,35 @@ export class CoursesService {
   }
 
   // აბრუნებს ყველა კურსს სტატუსის მიხედვით (active ან deleted)
-  getAllCourses(status: 'active' | 'deleted' = 'active') {
-    if (status === 'deleted') {
-      // მხოლოდ წაშლილი კურსები
-      return this.courseModel.find({ status: 'deleted' }).sort({ createdAt: -1 });
-    }
+  async getAllCourses(
+    status: 'active' | 'deleted' = 'active',
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const skip = (page - 1) * limit;
 
-    // active + ძველი კურსები (status ველის გარეშე)
-    return this.courseModel.find({
-      $or: [
-        { status: 'active' },
-        { status: { $exists: false } }, // fallback ძველი დოკუმენტებისთვის
-      ]
-    }).sort({ createdAt: -1 });
+    const filter: any =
+      status === 'deleted'
+        ? { status: 'deleted' }
+        : {
+            $or: [
+              { status: 'active' },
+              { status: { $exists: false } }, // fallback ძველი დოკუმენტებისთვის
+            ],
+          };
+
+    const [data, total] = await Promise.all([
+      this.courseModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      this.courseModel.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   // კურსის წამოღება ID-ის მიხედვით, სტუდენტების დატვირთვით (populate)
@@ -83,5 +98,18 @@ export class CoursesService {
     }
 
     return this.courseModel.find(filter).sort({ createdAt: -1 });
+  }
+
+  //  ახალი ფუნქცია: წაშლილი კურსის აღდგენა — სტატუსის დაბრუნება active-ზე
+  async restoreCourse(id: string) {
+    const restored = await this.courseModel.findByIdAndUpdate(
+      id,
+      { status: 'active' },
+      { new: true }
+    );
+    if (!restored) {
+      throw new NotFoundException('Course not found');
+    }
+    return { message: 'კურსი წარმატებით აღდგა' };
   }
 }

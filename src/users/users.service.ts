@@ -15,7 +15,7 @@ export class UsersService {
     @InjectModel(Course.name) private courseModel: Model<Course>,
   ) {}
 
-  // 🔹 ახალი იუზერის შექმნა
+  //  ახალი იუზერის შექმნა
   async createUser({ settings, ...createUserDto }: CreateUserDto) {
     const existing = await this.userModel.findOne({ username: createUserDto.username });
     if (existing) {
@@ -37,12 +37,12 @@ export class UsersService {
     return newUser.save();
   }
 
-  // 🔹 ყველა იუზერის წამოღება
+  //  ყველა იუზერის წამოღება
   getsUsers() {
     return this.userModel.find().populate(['settings', 'posts', 'enrolledCourses']);
   }
 
-  // 🔹 კონკრეტული იუზერი ID-ით
+  //  კონკრეტული იუზერი ID-ით
   async getUserById(id: string) {
     const user = await this.userModel.findById(id).populate(['settings', 'posts', 'enrolledCourses']);
     if (!user) {
@@ -51,7 +51,7 @@ export class UsersService {
     return user;
   }
 
-  // 🔹 იუზერის განახლება
+  //  იუზერის განახლება
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const updatedUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true });
     if (!updatedUser) {
@@ -60,7 +60,7 @@ export class UsersService {
     return updatedUser;
   }
 
-  // 🔹 იუზერის წაშლა
+  //  იუზერის წაშლა
   async deleteUser(id: string) {
     const deletedUser = await this.userModel.findByIdAndDelete(id);
     if (!deletedUser) {
@@ -69,7 +69,7 @@ export class UsersService {
     return { message: 'User deleted successfully' };
   }
 
-  // 🔹 Enrollment — კურსზე იუზერის დამატება
+  //  Enrollment — კურსზე იუზერის დამატება
   async enrollCourse(userId: string, courseId: string) {
     const course = await this.courseModel.findById(courseId).populate('students');
     if (!course) {
@@ -101,7 +101,7 @@ export class UsersService {
     ).populate(['enrolledCourses', 'settings']);
   }
 
-  // 🔹 Unenrollment — იუზერის ამოღება კურსიდან
+  //  Unenrollment — იუზერის ამოღება კურსიდან
   async unenrollCourse(userId: string, courseId: string) {
     const course = await this.courseModel.findById(courseId);
     if (!course) {
@@ -129,3 +129,4 @@ export class UsersService {
     ).populate(['enrolledCourses', 'settings']);
   }
 }
+
