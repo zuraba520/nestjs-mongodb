@@ -2,26 +2,31 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { User } from './User.schema';
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true }) 
 export class Course extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true }) // კურსის სათაური აუცილებელია
   title: string;
 
-  @Prop()
+  @Prop() // აღწერა არაა სავალდებულო
   description?: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true }) // მაქს სტუდ რაო აუც
   maxStudents: number;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], default: [] })
-  students: User[];
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    default: [],
+  })
+  students: User[]; //  დარეგისტრირებული იუზერები user ID ები
 
-  //  ახალი ველი კურსის სტატუსისთვის სტატუსით
-  @Prop({ enum: ['active', 'deleted'], default: 'active' })
-  status: 'active' | 'deleted';
+  @Prop({
+    enum: ['active', 'deleted'],
+    default: 'active',
+  })
+  status: 'active' | 'deleted'; // კურსის სტატუსი soft delete ისთვის
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);
 
-//  Full-text index title და description ველებზე
+// Full text index ძიებისთვის title და description ველებზე
 CourseSchema.index({ title: 'text', description: 'text' });

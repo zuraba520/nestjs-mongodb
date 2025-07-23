@@ -8,8 +8,6 @@ import {
   Param,
   Query,
   HttpException,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -26,21 +24,23 @@ export class CoursesController {
     return this.coursesService.createCourse(createCourseDto);
   }
 
-  //  ყველა კურსის წამოღება სტატუსით active/deleted
-  @Get()
-  getAllCourses(
+  // ერთიანი ძებნა + სტატუსით ფილტრაცია + pagination
+  @Get('search')
+  searchCourses(
+    @Query('query') query: string = '',
     @Query('status') status: 'active' | 'deleted' = 'active',
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ) {
-    return this.coursesService.getAllCourses(
+    return this.coursesService.searchCourses(
+      query,
       status,
       parseInt(page),
       parseInt(limit),
     );
   }
 
-  //  კონკრეტული კურსის წამოღება ID_ით
+  //  კონკრეტული კურსის წამოღება ID ით
   @Get(':id')
   getCourseById(@Param('id') id: string) {
     return this.coursesService.getCourseById(id);
@@ -55,7 +55,7 @@ export class CoursesController {
     return this.coursesService.updateCourse(id, updateCourseDto);
   }
 
-  //  კურსის წაშლა (სტატუსის შეცვლით)
+  //  კურსის წაშლა სტატუსის შეცვლით
   @Delete(':id')
   deleteCourse(@Param('id') id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -64,16 +64,7 @@ export class CoursesController {
     return this.coursesService.deleteCourse(id);
   }
 
-  // ტექსტური ძებნა სტატუსით
-  @Get('search/text')
-  searchCourses(
-    @Query('query') query: string,
-    @Query('status') status: 'active' | 'deleted' = 'active',
-  ) {
-    return this.coursesService.searchCourses(query, status);
-  }
-
-  //  ახალი როუტი წაშლილი კურსის აღდგენა (სტატუსის დაბრუნება active-ზე)
+  //  წაშლილი კურსის აღდგენა სტატუსის დაბრუნება active ზე
   @Patch(':id/restore')
   restoreCourse(@Param('id') id: string) {
     return this.coursesService.restoreCourse(id);

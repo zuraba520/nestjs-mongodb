@@ -17,7 +17,7 @@ export class CreatePostDto {
 }
 
 
-// მაგალთი  პოსტით
+// მაგალთი  პოსტი
 
 // {
 //     "title": "My First Post",

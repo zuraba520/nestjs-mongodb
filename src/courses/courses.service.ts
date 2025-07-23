@@ -11,57 +11,70 @@ export class CoursesService {
     @InjectModel(Course.name) private courseModel: Model<Course>,
   ) {}
 
-  // ქმნის ახალ კურსს
+  //  ახალი კურსის შექმნა
   createCourse(createCourseDto: CreateCourseDto) {
-    const course = new this.courseModel(createCourseDto);
-    return course.save();
+    const course = new this.courseModel({
+      ...createCourseDto,
+      status: 'active', // fallback ის გარეშე 
+    });
+    return course.save(); // ბაზი შენ
   }
 
-  // აბრუნებს ყველა კურსს სტატუსის მიხედვით (active ან deleted)
-  async getAllCourses(
+  //  ძებნა სტატუსის ფილტრი + pagination
+  async searchCourses(
+    query: string = '',
     status: 'active' | 'deleted' = 'active',
     page: number = 1,
     limit: number = 10,
   ) {
     const skip = (page - 1) * limit;
 
-    const filter: any =
+    //   სტატუსზე დაფუძნებულ საძიებო ფილტრი
+    const baseStatusFilter =
       status === 'deleted'
         ? { status: 'deleted' }
+        : { status: 'active' }; // fallbac
+
+    // თუ ძიება ცარიელია → ვეყრდნობით მარტო სტატუსს, თუ არა → ვეძებთ ტექსტურადაც
+    const finalFilter =
+      query.trim() === ''
+        ? baseStatusFilter
         : {
-            $or: [
-              { status: 'active' },
-              { status: { $exists: false } }, // fallback ძველი დოკუმენტებისთვის
-            ],
+            ...baseStatusFilter,
+            $text: { $search: query }, 
           };
 
     const [data, total] = await Promise.all([
-      this.courseModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
-      this.courseModel.countDocuments(filter),
+      this.courseModel
+        .find(finalFilter)
+        .sort({ createdAt: -1 }) // უახლესი პირველი
+        .skip(skip)
+        .limit(limit),
+      this.courseModel.countDocuments(finalFilter),
     ]);
 
     return {
-      data,
-      total,
+      data, 
+      total, 
       page,
       limit,
       totalPages: Math.ceil(total / limit),
     };
   }
 
-  // კურსის წამოღება ID-ის მიხედვით, სტუდენტების დატვირთვით (populate)
+  //  კონკრეტული კურსის წამოღება ID ით
   async getCourseById(id: string) {
     const course = await this.courseModel.findById(id).populate('students');
     if (!course) {
-      throw new NotFoundException('Course not found'); // 404
+      throw new NotFoundException('Course not found');
     }
     return course;
   }
 
-  // კურსის განახლება
+  //  კურსის განახლება
   async updateCourse(id: string, updateCourseDto: UpdateCourseDto) {
     const updated = await this.courseModel.findByIdAndUpdate(id, updateCourseDto, {
-      new: true, // განახლებული დოკუმენტის დაბრუნება
+      new: true, // დააბრუნე განახლებული
     });
     if (!updated) {
       throw new NotFoundException('Course not found');
@@ -69,12 +82,12 @@ export class CoursesService {
     return updated;
   }
 
-  // კურსის "წაშლა" — მხოლოდ სტატუსის ცვლილება deleted-ზე
+  //  კურსის წაშლა status  deleted
   async deleteCourse(id: string) {
     const deleted = await this.courseModel.findByIdAndUpdate(
       id,
-      { status: 'deleted' },
-      { new: true }
+      { status: 'deleted' }, // მხოლოდ სტატუსის განახლება
+      { new: true },
     );
     if (!deleted) {
       throw new NotFoundException('Course not found');
@@ -82,30 +95,12 @@ export class CoursesService {
     return { message: 'Course marked as deleted' };
   }
 
-  // ტექსტური ძებნა — title და description ველებზე
-  async searchCourses(query: string, status: 'active' | 'deleted' = 'active') {
-    const filter: any = {
-      $text: { $search: query },
-    };
-
-    if (status === 'deleted') {
-      filter.status = 'deleted';
-    } else {
-      filter.$or = [
-        { status: 'active' },
-        { status: { $exists: false } }, // fallback ძველი კურსებისთვის
-      ];
-    }
-
-    return this.courseModel.find(filter).sort({ createdAt: -1 });
-  }
-
-  //  ახალი ფუნქცია: წაშლილი კურსის აღდგენა — სტატუსის დაბრუნება active-ზე
+  // წაშლილი კურსის აღდგენა
   async restoreCourse(id: string) {
     const restored = await this.courseModel.findByIdAndUpdate(
       id,
       { status: 'active' },
-      { new: true }
+      { new: true },
     );
     if (!restored) {
       throw new NotFoundException('Course not found');

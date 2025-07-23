@@ -12,9 +12,9 @@ export class PostsService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  // პოსტის შექმნა — ამოწმებს არსებობს თუ არა user
+  // პოსტის შექმნა  ამოწმებს არსებობს თუ არა user
   async createPost({ userId, ...createPostDto }: CreatePostDto) {
-    const findUser = await this.userModel.findById(userId); // ვპოულობთ იუზერს ID-ით
+    const findUser = await this.userModel.findById(userId); // ვპოულობთ იუზერს ID ით
     if (!findUser) {
       throw new NotFoundException('User not found'); 
     }
